@@ -149,5 +149,4 @@ export function FixedExpensesList({ expenses, categories, users }: { expenses: F
             </CardContent>
         </GlassCard>
     )
-    )
 }

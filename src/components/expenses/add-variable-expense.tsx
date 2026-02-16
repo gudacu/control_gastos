@@ -54,7 +54,6 @@ export function AddVariableExpense({
     }
 
     return (
-    return (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="bg-[#0f172a] border border-white/10 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
                 <div className="flex justify-between items-center p-4 border-b border-white/5 bg-white/5">
