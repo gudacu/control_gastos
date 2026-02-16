@@ -65,7 +65,7 @@ export function ContributionCard({ users }: { users: User[] }) {
             setNewUserAmount("")
             router.refresh()
         } else {
-            alert("Error al agregar usuario. Intente nuevamente.")
+            alert(result.error || "Error al agregar usuario. Intente nuevamente.")
         }
         setIsPending(false)
     }

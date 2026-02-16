@@ -38,6 +38,7 @@ export async function addUser(name: string, amount: number) {
         return { success: true }
     } catch (error) {
         console.error('Failed to add user:', error)
-        return { success: false, error: 'Failed to add user' }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        return { success: false, error: `Failed to add user: ${errorMessage}` }
     }
 }
