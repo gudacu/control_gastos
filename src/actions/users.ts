@@ -28,3 +28,16 @@ export async function getUsers() {
         return []
     }
 }
+
+export async function addUser(name: string, amount: number) {
+    try {
+        await prisma.user.create({
+            data: { name, amount }
+        })
+        revalidatePath('/')
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to add user:', error)
+        return { success: false, error: 'Failed to add user' }
+    }
+}

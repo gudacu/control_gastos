@@ -4,8 +4,8 @@ import { useState } from "react"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { updateContribution } from "@/actions/users"
-import { Pencil, Check, X, Users } from "lucide-react"
+import { addUser, updateContribution } from "@/actions/users"
+import { Pencil, Check, X, Users, Plus, UserPlus } from "lucide-react"
 
 type User = {
     id: string
@@ -17,6 +17,11 @@ export function ContributionCard({ users }: { users: User[] }) {
     const [editingId, setEditingId] = useState<string | null>(null)
     const [tempAmount, setTempAmount] = useState<string>("")
     const [isPending, setIsPending] = useState(false)
+
+    // New User State
+    const [isAddingUser, setIsAddingUser] = useState(false)
+    const [newUserName, setNewUserName] = useState("")
+    const [newUserAmount, setNewUserAmount] = useState("")
 
     const totalBudget = users.reduce((acc, user) => acc + user.amount, 0)
 
@@ -40,6 +45,19 @@ export function ContributionCard({ users }: { users: User[] }) {
         setTempAmount("")
     }
 
+    const handleAddUser = async () => {
+        if (!newUserName) return
+        setIsPending(true)
+        const amount = parseFloat(newUserAmount) || 0
+
+        await addUser(newUserName, amount)
+
+        setIsAddingUser(false)
+        setNewUserName("")
+        setNewUserAmount("")
+        setIsPending(false)
+    }
+
     return (
         <GlassCard className="p-5 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4 relative z-10">
@@ -55,6 +73,20 @@ export function ContributionCard({ users }: { users: User[] }) {
             </div>
 
             <div className="space-y-3 relative z-10">
+                {users.length === 0 && !isAddingUser && (
+                    <div className="text-center py-6 bg-white/5 rounded-xl border border-dashed border-white/10">
+                        <p className="text-white/40 text-sm mb-3">No hay participantes aún.</p>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsAddingUser(true)}
+                            className="bg-white/5 border-white/10 text-indigo-300 hover:text-white hover:bg-indigo-600 hover:border-indigo-500 transition-all"
+                        >
+                            <Plus className="h-4 w-4 mr-2" /> Agregar Participante
+                        </Button>
+                    </div>
+                )}
+
                 {users.map((user) => (
                     <div key={user.id} className="flex items-center justify-between bg-black/20 p-3 rounded-xl border border-white/5 transition-all hover:bg-black/30">
                         <div className="flex flex-col">
@@ -107,6 +139,63 @@ export function ContributionCard({ users }: { users: User[] }) {
                         </div>
                     </div>
                 ))}
+
+                {/* Add User Form */}
+                {isAddingUser && (
+                    <div className="flex flex-col gap-3 bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 animate-in fade-in slide-in-from-top-2">
+                        <div className="flex gap-2">
+                            <div className="flex-1">
+                                <label className="text-[10px] text-indigo-300 uppercase font-bold tracking-wider mb-1 block">Nombre</label>
+                                <Input
+                                    value={newUserName}
+                                    onChange={(e) => setNewUserName(e.target.value)}
+                                    placeholder="Nombre"
+                                    className="h-8 bg-black/20 border-white/10 text-white placeholder:text-white/20 text-sm"
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="w-24">
+                                <label className="text-[10px] text-indigo-300 uppercase font-bold tracking-wider mb-1 block">Aporte Inicial</label>
+                                <Input
+                                    type="number"
+                                    value={newUserAmount}
+                                    onChange={(e) => setNewUserAmount(e.target.value)}
+                                    placeholder="$"
+                                    className="h-8 bg-black/20 border-white/10 text-white placeholder:text-white/20 text-sm"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setIsAddingUser(false)}
+                                className="h-7 text-xs text-white/50 hover:text-white hover:bg-white/10"
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={handleAddUser}
+                                disabled={!newUserName || isPending}
+                                className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500 text-white"
+                            >
+                                Guardar
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {!isAddingUser && users.length > 0 && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full mt-2 border border-dashed border-white/10 text-white/30 hover:text-white hover:bg-white/5 hover:border-white/20"
+                        onClick={() => setIsAddingUser(true)}
+                    >
+                        <UserPlus className="h-4 w-4 mr-2" /> Agregar otro participante
+                    </Button>
+                )}
             </div>
 
             {/* Decorativo de fondo */}
