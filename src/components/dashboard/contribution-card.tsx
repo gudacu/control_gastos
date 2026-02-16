@@ -95,12 +95,13 @@ export function ContributionCard({ users }: { users: User[] }) {
                                 </>
                             ) : (
                                 <Button
-                                    size="icon"
+                                    size="sm"
                                     variant="ghost"
-                                    className="h-8 w-8 hover:bg-white/10 text-white/40 hover:text-white rounded-full transition-colors"
+                                    className="h-8 px-2 hover:bg-white/10 text-indigo-300 hover:text-white rounded-lg transition-colors flex items-center gap-1"
                                     onClick={() => handleEdit(user)}
                                 >
-                                    <Pencil className="h-4 w-4" />
+                                    <span className="text-xs font-medium">Editar</span>
+                                    <Pencil className="h-3 w-3" />
                                 </Button>
                             )}
                         </div>
