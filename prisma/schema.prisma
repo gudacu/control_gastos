@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  amount    Float    @default(0) // Monto de aporte mensual comprometido
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expenses  Expense[] @relation("PaidBy")
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  date        DateTime
+  
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  
+  paidById    String
+  paidBy      User     @relation("PaidBy", fields: [paidById], references: [id])
+  
+  type        String   // "FIXED" or "VARIABLE"
+  
+  paymentMethodId String?
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id    String @id @default(cuid())
+  name  String
+  icon  String // Store lucide icon name
+  expenses Expense[]
+}
+
+model PaymentMethod {
+  id    String @id @default(cuid())
+  name  String
+  expenses Expense[]
+}
+
+model MonthlyBalance {
+  id        String   @id @default(cuid())
+  month     DateTime // First day of the month represents the period
+  balance   Float    // Saldo restante al final del mes
+  createdAt DateTime @default(now())
+}
