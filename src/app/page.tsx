@@ -49,7 +49,7 @@ export default async function Home({ searchParams }: { searchParams: { month?: s
   const remainingBalance = totalIncome - totalFixed - totalVariable - totalRolloverOut
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-20">
+    <main className="min-h-screen pb-20">
       <div className="max-w-md mx-auto p-4 space-y-6">
         <header className="flex justify-between items-center py-2">
           <h1 className="text-xl font-bold text-gray-800">Gastos</h1>

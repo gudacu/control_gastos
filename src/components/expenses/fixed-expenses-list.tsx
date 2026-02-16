@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { GlassCard } from "@/components/ui/glass-card"
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { addFixedExpense, deleteExpense, updateFixedExpense } from "@/actions/expenses"
@@ -63,34 +64,36 @@ export function FixedExpensesList({ expenses, categories, users }: { expenses: F
     }
 
     return (
-        <Card className="w-full shadow-md">
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-medium text-gray-700">Gastos Fijos</CardTitle>
-                <Button size="sm" variant="outline" onClick={() => setIsAdding(!isAdding)}>
+        <GlassCard className="w-full relative overflow-hidden p-0">
+            <div className="p-4 border-b border-white/5 flex flex-row items-center justify-between bg-black/20">
+                <CardTitle className="text-lg font-medium text-white/90 tracking-wide">Gastos Fijos</CardTitle>
+                <Button size="sm" variant="outline" onClick={() => setIsAdding(!isAdding)} className="bg-white/5 border-white/10 text-white hover:bg-white/10">
                     <Plus className="h-4 w-4 mr-1" /> Agregar
                 </Button>
-            </CardHeader>
-            <CardContent>
+            </div>
+            <CardContent className="p-4">
                 {isAdding && (
-                    <div className="flex gap-2 mb-4 items-end animate-in fade-in slide-in-from-top-2">
+                    <div className="flex gap-2 mb-4 items-end animate-in fade-in slide-in-from-top-2 bg-white/5 p-3 rounded-xl border border-white/5">
                         <div className="flex-1">
-                            <label className="text-xs text-gray-500">Descripción</label>
+                            <label className="text-xs text-white/50 mb-1 block">Descripción</label>
                             <Input
                                 value={newDescription}
                                 onChange={(e) => setNewDescription(e.target.value)}
                                 placeholder="Ej: Internet"
+                                className="bg-black/20 border-white/10 text-white placeholder:text-white/20"
                             />
                         </div>
                         <div className="w-24">
-                            <label className="text-xs text-gray-500">Monto</label>
+                            <label className="text-xs text-white/50 mb-1 block">Monto</label>
                             <Input
                                 type="number"
                                 value={newAmount}
                                 onChange={(e) => setNewAmount(e.target.value)}
                                 placeholder="$"
+                                className="bg-black/20 border-white/10 text-white placeholder:text-white/20"
                             />
                         </div>
-                        <Button size="icon" onClick={handleAdd}>
+                        <Button size="icon" onClick={handleAdd} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                             <Check className="h-4 w-4" />
                         </Button>
                     </div>
@@ -98,20 +101,20 @@ export function FixedExpensesList({ expenses, categories, users }: { expenses: F
 
                 <div className="space-y-2">
                     {expenses.map((expense) => (
-                        <div key={expense.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                        <div key={expense.id} className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5 hover:bg-black/30 transition-colors group">
                             {editingId === expense.id ? (
                                 <>
                                     <div className="flex-1 mr-2">
-                                        <Input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="h-8" />
+                                        <Input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="h-8 bg-black/40 border-indigo-500/50 text-white" />
                                     </div>
                                     <div className="w-24 mr-2">
-                                        <Input type="number" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} className="h-8" />
+                                        <Input type="number" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} className="h-8 bg-black/40 border-indigo-500/50 text-white" />
                                     </div>
                                     <div className="flex gap-1">
-                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600" onClick={saveEdit}>
+                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-green-400 hover:bg-green-500/20" onClick={saveEdit}>
                                             <Check className="h-4 w-4" />
                                         </Button>
-                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600" onClick={() => setEditingId(null)}>
+                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400 hover:bg-red-500/20" onClick={() => setEditingId(null)}>
                                             <X className="h-4 w-4" />
                                         </Button>
                                     </div>
@@ -119,17 +122,17 @@ export function FixedExpensesList({ expenses, categories, users }: { expenses: F
                             ) : (
                                 <>
                                     <div className="flex-1">
-                                        <div className="font-medium text-sm text-gray-800">{expense.description}</div>
-                                        <div className="text-xs text-gray-500">{expense.category?.name || 'General'}</div>
+                                        <div className="font-medium text-sm text-white/90">{expense.description}</div>
+                                        <div className="text-xs text-white/50">{expense.category?.name || 'General'}</div>
                                     </div>
-                                    <div className="font-bold text-gray-700 mr-4">
+                                    <div className="font-bold text-white/90 mr-4">
                                         ${expense.amount.toLocaleString('es-AR')}
                                     </div>
-                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-blue-500" onClick={() => startEdit(expense)}>
+                                    <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-indigo-400 hover:text-indigo-300 hover:bg-white/5" onClick={() => startEdit(expense)}>
                                             <Pencil className="h-3 w-3" />
                                         </Button>
-                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500" onClick={() => handleDelete(expense.id)}>
+                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-white/5" onClick={() => handleDelete(expense.id)}>
                                             <Trash2 className="h-3 w-3" />
                                         </Button>
                                     </div>
@@ -138,12 +141,13 @@ export function FixedExpensesList({ expenses, categories, users }: { expenses: F
                         </div>
                     ))}
                     {expenses.length === 0 && !isAdding && (
-                        <div className="text-center text-gray-400 text-sm py-4">
+                        <div className="text-center text-white/30 text-sm py-8">
                             No hay gastos fijos registrados.
                         </div>
                     )}
                 </div>
             </CardContent>
-        </Card>
+        </GlassCard>
+    )
     )
 }
