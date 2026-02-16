@@ -1,8 +1,11 @@
-import { getFixedExpenses, getVariableExpenses, getCategories } from "@/actions/expenses"
-import { getPaymentMethods } from "@/actions/variable-expenses"
+import { getFixedExpenses, getVariableExpenses } from "@/actions/expenses"
+import { getCategories } from "@/actions/categories"
+import { getPaymentMethods } from "@/actions/payment-methods"
 import { getUsers } from "@/actions/users"
 import { FinancialSummary } from "@/components/dashboard/financial-summary"
 import { ContributionCard } from "@/components/dashboard/contribution-card"
+import { CategoryCard } from "@/components/dashboard/category-card"
+import { PaymentMethodCard } from "@/components/dashboard/payment-method-card"
 import { FixedExpensesList } from "@/components/expenses/fixed-expenses-list"
 import { VariableExpensesList } from "@/components/expenses/variable-expenses-list"
 import { AddVariableExpense } from "@/components/expenses/add-variable-expense"
@@ -67,6 +70,14 @@ export default async function Home({ searchParams }: { searchParams: { month?: s
 
         <section>
           <ContributionCard users={users} />
+        </section>
+
+        <section>
+          <CategoryCard categories={categories} />
+        </section>
+
+        <section>
+          <PaymentMethodCard paymentMethods={paymentMethods} />
         </section>
 
         <section>

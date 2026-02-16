@@ -2,7 +2,6 @@
 
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { Expense } from "@prisma/client"
 
 export async function getFixedExpenses() {
     try {
@@ -35,7 +34,7 @@ export async function addFixedExpense(data: { description: string, amount: numbe
     }
 }
 
-export async function updateFixedExpense(id: string, data: { description: string, amount: number }) {
+export async function updateFixedExpense(id: string, data: { description: string, amount: number, categoryId?: string }) {
     try {
         await prisma.expense.update({
             where: { id },
@@ -57,16 +56,6 @@ export async function deleteExpense(id: string) {
     } catch (error) {
         console.error('Failed to delete expense:', error)
         return { success: false, error: 'Failed to delete' }
-    }
-}
-
-export async function getCategories() {
-    try {
-        const categories = await prisma.category.findMany({ orderBy: { name: 'asc' } })
-        return categories
-    } catch (error) {
-        console.error('Failed to fetch categories:', error)
-        return []
     }
 }
 

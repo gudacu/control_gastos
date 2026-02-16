@@ -47,12 +47,3 @@ export async function updateVariableExpense(id: string, data: {
     }
 }
 
-export async function getPaymentMethods() {
-    try {
-        const methods = await prisma.paymentMethod.findMany()
-        return methods
-    } catch (error) {
-        console.error('Failed to fetch payment methods:', error)
-        return []
-    }
-}
