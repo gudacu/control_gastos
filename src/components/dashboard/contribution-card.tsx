@@ -14,6 +14,7 @@ type User = {
 }
 
 export function ContributionCard({ users }: { users: User[] }) {
+    const router = useRouter()
     const [editingId, setEditingId] = useState<string | null>(null)
     const [tempAmount, setTempAmount] = useState<string>("")
     const [isPending, setIsPending] = useState(false)
@@ -35,8 +36,13 @@ export function ContributionCard({ users }: { users: User[] }) {
         const amount = parseFloat(tempAmount)
         if (isNaN(amount)) return
 
-        await updateContribution(userId, amount)
-        setEditingId(null)
+        const result = await updateContribution(userId, amount)
+        if (result.success) {
+            setEditingId(null)
+            router.refresh()
+        } else {
+            alert("Error al actualizar. Intente nuevamente.")
+        }
         setIsPending(false)
     }
 
@@ -50,11 +56,16 @@ export function ContributionCard({ users }: { users: User[] }) {
         setIsPending(true)
         const amount = parseFloat(newUserAmount) || 0
 
-        await addUser(newUserName, amount)
+        const result = await addUser(newUserName, amount)
 
-        setIsAddingUser(false)
-        setNewUserName("")
-        setNewUserAmount("")
+        if (result.success) {
+            setIsAddingUser(false)
+            setNewUserName("")
+            setNewUserAmount("")
+            router.refresh()
+        } else {
+            alert("Error al agregar usuario. Intente nuevamente.")
+        }
         setIsPending(false)
     }
 
