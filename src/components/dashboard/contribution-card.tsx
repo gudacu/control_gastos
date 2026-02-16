@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { updateContribution } from "@/actions/users"
-import { Pencil, Check, X } from "lucide-react"
+import { Pencil, Check, X, Users } from "lucide-react"
 
 type User = {
     id: string
@@ -41,68 +41,75 @@ export function ContributionCard({ users }: { users: User[] }) {
     }
 
     return (
-        <Card className="w-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xl">
-            <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium opacity-90">Fondo Común Mensual</CardTitle>
-                <div className="text-4xl font-bold">
+        <GlassCard className="p-5 relative overflow-hidden">
+            <div className="flex items-center justify-between mb-4 relative z-10">
+                <div className="flex items-center gap-2">
+                    <div className="p-2 bg-indigo-500/20 rounded-lg backdrop-blur-sm">
+                        <Users className="h-5 w-5 text-indigo-400" />
+                    </div>
+                    <span className="text-sm font-medium text-white/80 uppercase tracking-widest">Fondo Común</span>
+                </div>
+                <div className="text-2xl font-bold text-white tracking-tight">
                     ${totalBudget.toLocaleString('es-AR')}
                 </div>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-3">
-                    {users.map((user) => (
-                        <div key={user.id} className="flex items-center justify-between bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-                            <div className="flex flex-col">
-                                <span className="font-semibold text-sm">{user.name}</span>
-                                {editingId === user.id ? (
-                                    <Input
-                                        type="number"
-                                        value={tempAmount}
-                                        onChange={(e) => setTempAmount(e.target.value)}
-                                        className="h-7 w-24 bg-white/20 text-white border-transparent focus:bg-white/30"
-                                        autoFocus
-                                    />
-                                ) : (
-                                    <span className="text-sm opacity-80">${user.amount.toLocaleString('es-AR')}</span>
-                                )}
-                            </div>
-                            <div className="flex gap-1">
-                                {editingId === user.id ? (
-                                    <>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className="h-8 w-8 hover:bg-green-500/20 hover:text-green-300"
-                                            onClick={() => handleSave(user.id)}
-                                            disabled={isPending}
-                                        >
-                                            <Check className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className="h-8 w-8 hover:bg-red-500/20 hover:text-red-300"
-                                            onClick={handleCancel}
-                                            disabled={isPending}
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    </>
-                                ) : (
+            </div>
+
+            <div className="space-y-3 relative z-10">
+                {users.map((user) => (
+                    <div key={user.id} className="flex items-center justify-between bg-black/20 p-3 rounded-xl border border-white/5 transition-all hover:bg-black/30">
+                        <div className="flex flex-col">
+                            <span className="font-medium text-indigo-200 text-sm mb-0.5">{user.name}</span>
+                            {editingId === user.id ? (
+                                <Input
+                                    type="number"
+                                    value={tempAmount}
+                                    onChange={(e) => setTempAmount(e.target.value)}
+                                    className="h-8 w-28 bg-white/10 text-white border-indigo-500/50 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                                    autoFocus
+                                />
+                            ) : (
+                                <span className="text-lg font-semibold text-white">${user.amount.toLocaleString('es-AR')}</span>
+                            )}
+                        </div>
+                        <div className="flex gap-1">
+                            {editingId === user.id ? (
+                                <>
                                     <Button
                                         size="icon"
                                         variant="ghost"
-                                        className="h-8 w-8 hover:bg-white/20"
-                                        onClick={() => handleEdit(user)}
+                                        className="h-8 w-8 hover:bg-green-500/20 text-green-400 hover:text-green-300 rounded-full"
+                                        onClick={() => handleSave(user.id)}
+                                        disabled={isPending}
                                     >
-                                        <Pencil className="h-3 w-3" />
+                                        <Check className="h-4 w-4" />
                                     </Button>
-                                )}
-                            </div>
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-8 w-8 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-full"
+                                        onClick={handleCancel}
+                                        disabled={isPending}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </>
+                            ) : (
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 hover:bg-white/10 text-white/40 hover:text-white rounded-full transition-colors"
+                                    onClick={() => handleEdit(user)}
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+                            )}
                         </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
+                    </div>
+                ))}
+            </div>
+
+            {/* Decorativo de fondo */}
+            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+        </GlassCard>
     )
 }

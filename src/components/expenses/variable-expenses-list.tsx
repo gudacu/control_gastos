@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent } from "@/components/ui/card"
+import { GlassCard } from "@/components/ui/glass-card"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { Tag, CreditCard, User, ArrowRight, ArrowLeft } from "lucide-react"
@@ -30,11 +30,11 @@ export function VariableExpensesList({ expenses }: { expenses: VariableExpense[]
     const sortedDates = Object.keys(groupedExpenses).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
 
     return (
-        <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-700 px-1">Movimientos del Mes</h3>
+        <div className="space-y-6">
+            <h3 className="text-lg font-medium text-white/80 px-1 tracking-wide">Movimientos del Mes</h3>
             {sortedDates.map((dateKey) => (
-                <div key={dateKey} className="space-y-2">
-                    <div className="text-xs font-semibold text-gray-500 uppercase px-1">
+                <div key={dateKey} className="space-y-3">
+                    <div className="text-xs font-bold text-indigo-400 uppercase px-1 tracking-widest bg-indigo-500/10 inline-block py-1 rounded-md mb-1">
                         {format(new Date(dateKey), "EEEE d 'de' MMMM", { locale: es })}
                     </div>
                     {groupedExpenses[dateKey].map((expense) => {
@@ -42,48 +42,43 @@ export function VariableExpensesList({ expenses }: { expenses: VariableExpense[]
                         const isRollover = expense.type === 'ROLLOVER'
 
                         return (
-                            <Card key={expense.id} className={`shadow-sm border-l-4 hover:shadow-md transition-shadow ${isIncome ? 'border-l-green-500 bg-green-50/50' :
-                                    isRollover ? 'border-l-orange-500 bg-orange-50/50' :
-                                        'border-l-indigo-400'
-                                }`}>
-                                <CardContent className="p-3">
-                                    <div className="flex justify-between items-start">
-                                        <div className="space-y-1">
-                                            <div className="font-semibold text-gray-800 flex items-center gap-2">
-                                                {expense.description}
-                                                {isIncome && <ArrowLeft className="h-3 w-3 text-green-600" />}
-                                                {isRollover && <ArrowRight className="h-3 w-3 text-orange-600" />}
-                                            </div>
-                                            <div className="flex items-center gap-3 text-xs text-gray-500">
-                                                <span className="flex items-center gap-1 bg-white/50 px-1.5 py-0.5 rounded">
-                                                    <Tag className="h-3 w-3" /> {expense.category.name}
-                                                </span>
-                                                {expense.paymentMethod && (
-                                                    <span className="flex items-center gap-1">
-                                                        <CreditCard className="h-3 w-3" /> {expense.paymentMethod.name}
-                                                    </span>
-                                                )}
-                                            </div>
+                            <GlassCard key={expense.id} className="p-4 border-l-4 border-l-transparent hover:border-l-indigo-500/50 transition-all">
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <div className="font-semibold text-white/90 flex items-center gap-2">
+                                            {expense.description}
+                                            {isIncome && <ArrowLeft className="h-3 w-3 text-green-400" />}
+                                            {isRollover && <ArrowRight className="h-3 w-3 text-orange-400" />}
                                         </div>
-                                        <div className="text-right">
-                                            <div className={`font-bold ${isIncome ? 'text-green-600' : isRollover ? 'text-orange-600' : 'text-gray-800'}`}>
-                                                {isIncome ? '+' : '-'}${expense.amount.toLocaleString('es-AR')}
-                                            </div>
-                                            {!isIncome && !isRollover && (
-                                                <div className="text-xs text-indigo-600 font-medium flex items-center justify-end gap-1 mt-1">
-                                                    <User className="h-3 w-3" /> {expense.paidBy.name.split(' ')[0]}
-                                                </div>
+                                        <div className="flex items-center gap-3 text-xs text-white/50">
+                                            <span className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                                                <Tag className="h-3 w-3" /> {expense.category.name}
+                                            </span>
+                                            {expense.paymentMethod && (
+                                                <span className="flex items-center gap-1 text-white/40">
+                                                    <CreditCard className="h-3 w-3" /> {expense.paymentMethod.name}
+                                                </span>
                                             )}
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
+                                    <div className="text-right">
+                                        <div className={`text-lg font-bold tracking-tight ${isIncome ? 'text-green-400' : isRollover ? 'text-orange-400' : 'text-white'}`}>
+                                            {isIncome ? '+' : '-'}${expense.amount.toLocaleString('es-AR')}
+                                        </div>
+                                        {!isIncome && !isRollover && (
+                                            <div className="text-xs text-indigo-300/70 font-medium flex items-center justify-end gap-1 mt-1">
+                                                <User className="h-3 w-3" /> {expense.paidBy.name.split(' ')[0]}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </GlassCard>
                         )
                     })}
                 </div>
             ))}
             {expenses.length === 0 && (
-                <div className="text-center text-gray-400 py-8 bg-white rounded-lg border border-dashed border-gray-300">
+                <div className="text-center text-white/30 py-12 bg-white/5 rounded-2xl border border-dashed border-white/10 backdrop-blur-sm">
                     No hay movimientos registrados este mes.
                 </div>
             )}

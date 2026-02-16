@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
 export function MonthSelector() {
     const router = useRouter()
@@ -14,27 +15,56 @@ export function MonthSelector() {
 
     const date = new Date(currentYear, currentMonth, 1)
 
+    // Calculate prev and next dates for pre-fetching or just logic
+    const prevDate = new Date(currentYear, currentMonth - 1, 1)
+    const nextDate = new Date(currentYear, currentMonth + 1, 1)
+
     const handlePrev = () => {
-        const prev = new Date(currentYear, currentMonth - 1, 1)
-        router.push(`/?month=${prev.getMonth()}&year=${prev.getFullYear()}`)
+        router.push(`/?month=${prevDate.getMonth()}&year=${prevDate.getFullYear()}`)
     }
 
     const handleNext = () => {
-        const next = new Date(currentYear, currentMonth + 1, 1)
-        router.push(`/?month=${next.getMonth()}&year=${next.getFullYear()}`)
+        router.push(`/?month=${nextDate.getMonth()}&year=${nextDate.getFullYear()}`)
     }
 
     return (
-        <div className="flex items-center gap-2 bg-gray-200 rounded-full p-1 animate-in fade-in">
-            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={handlePrev}>
-                <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-xs font-semibold w-24 text-center capitalize">
-                {date.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
-            </span>
-            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={handleNext}>
-                <ChevronRight className="h-4 w-4" />
-            </Button>
+        <div className="flex flex-col items-center justify-center py-4 relative z-20">
+            <div className="flex items-center gap-6">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-full text-white/50 hover:text-white hover:bg-white/10"
+                    onClick={handlePrev}
+                >
+                    <ChevronLeft className="h-6 w-6" />
+                </Button>
+
+                <div className="flex flex-col items-center">
+                    <AnimatePresence mode="wait">
+                        <motion.span
+                            key={`${currentMonth}-${currentYear}`}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="text-2xl font-bold text-white capitalize tracking-tight"
+                        >
+                            {date.toLocaleDateString('es-AR', { month: 'long' })}
+                        </motion.span>
+                    </AnimatePresence>
+                    <span className="text-xs font-medium text-white/40 tracking-widest uppercase mt-1">
+                        {currentYear}
+                    </span>
+                </div>
+
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-full text-white/50 hover:text-white hover:bg-white/10"
+                    onClick={handleNext}
+                >
+                    <ChevronRight className="h-6 w-6" />
+                </Button>
+            </div>
         </div>
     )
 }
