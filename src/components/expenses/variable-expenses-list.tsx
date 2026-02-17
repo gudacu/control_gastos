@@ -1,9 +1,15 @@
 'use client'
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { GlassCard } from "@/components/ui/glass-card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { Tag, CreditCard, User, ArrowRight, ArrowLeft } from "lucide-react"
+import { Tag, CreditCard, User, ArrowRight, ArrowLeft, Pencil, Trash2, Check, X } from "lucide-react"
+import { updateVariableExpense } from "@/actions/variable-expenses"
+import { deleteExpense } from "@/actions/expenses"
 
 type VariableExpense = {
     id: string
@@ -11,13 +17,81 @@ type VariableExpense = {
     amount: number
     date: Date | string
     type: string
-    category: { name: string, icon: string }
-    paidBy: { name: string }
-    paymentMethod?: { name: string } | null
+    category: { id?: string, name: string, icon: string }
+    paidBy: { id?: string, name: string }
+    paymentMethod?: { id?: string, name: string } | null
 }
 
-export function VariableExpensesList({ expenses }: { expenses: VariableExpense[] }) {
-    // Group expenses by date (Today, Yesterday, Date)
+type Category = { id: string, name: string, icon: string }
+type UserType = { id: string, name: string, amount: number }
+type PaymentMethod = { id: string, name: string }
+
+export function VariableExpensesList({
+    expenses,
+    categories,
+    users,
+    paymentMethods
+}: {
+    expenses: VariableExpense[],
+    categories: Category[],
+    users: UserType[],
+    paymentMethods: PaymentMethod[]
+}) {
+    const router = useRouter()
+    const [editingId, setEditingId] = useState<string | null>(null)
+    const [editDescription, setEditDescription] = useState("")
+    const [editAmount, setEditAmount] = useState("")
+    const [editDate, setEditDate] = useState("")
+    const [editCategoryId, setEditCategoryId] = useState("")
+    const [editPaidById, setEditPaidById] = useState("")
+    const [editPaymentMethodId, setEditPaymentMethodId] = useState("")
+    const [isPending, setIsPending] = useState(false)
+
+    const handleEdit = (expense: VariableExpense) => {
+        setEditingId(expense.id)
+        setEditDescription(expense.description)
+        setEditAmount(expense.amount.toString())
+        const d = new Date(expense.date)
+        setEditDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)
+        setEditCategoryId(expense.category.id || categories[0]?.id || "")
+        setEditPaidById(expense.paidBy.id || users[0]?.id || "")
+        setEditPaymentMethodId(expense.paymentMethod?.id || paymentMethods[0]?.id || "")
+    }
+
+    const handleSave = async () => {
+        if (!editingId || !editDescription || !editAmount) return
+        setIsPending(true)
+        const [y, m, d] = editDate.split('-').map(Number)
+        const result = await updateVariableExpense(editingId, {
+            description: editDescription,
+            amount: parseFloat(editAmount),
+            date: new Date(y, m - 1, d, 12, 0, 0),
+            categoryId: editCategoryId,
+            paidById: editPaidById,
+            paymentMethodId: editPaymentMethodId
+        })
+        if (result.success) {
+            setEditingId(null)
+            router.refresh()
+        } else {
+            alert(result.error)
+        }
+        setIsPending(false)
+    }
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('¿Eliminar este movimiento?')) return
+        setIsPending(true)
+        const result = await deleteExpense(id)
+        if (result.success) {
+            router.refresh()
+        } else {
+            alert(result.error)
+        }
+        setIsPending(false)
+    }
+
+    // Group expenses by date
     const groupedExpenses = expenses.reduce((groups, expense) => {
         const dateKey = new Date(expense.date).toDateString()
         if (!groups[dateKey]) {
@@ -40,6 +114,79 @@ export function VariableExpensesList({ expenses }: { expenses: VariableExpense[]
                     {groupedExpenses[dateKey].map((expense) => {
                         const isIncome = expense.type === 'INCOME'
                         const isRollover = expense.type === 'ROLLOVER'
+                        const isEditing = editingId === expense.id
+
+                        if (isEditing) {
+                            return (
+                                <GlassCard key={expense.id} className="p-4 border-l-4 border-l-indigo-500">
+                                    <div className="space-y-3">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <Input
+                                                value={editDescription}
+                                                onChange={(e) => setEditDescription(e.target.value)}
+                                                placeholder="Descripción"
+                                                className="h-9 bg-black/20 border-white/10 text-white text-sm"
+                                                autoFocus
+                                            />
+                                            <div className="relative">
+                                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-white/50 text-sm">$</span>
+                                                <Input
+                                                    type="number"
+                                                    value={editAmount}
+                                                    onChange={(e) => setEditAmount(e.target.value)}
+                                                    className="h-9 pl-6 bg-black/20 border-white/10 text-white text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <Input
+                                                type="date"
+                                                value={editDate}
+                                                onChange={(e) => setEditDate(e.target.value)}
+                                                className="h-9 bg-black/20 border-white/10 text-white text-sm"
+                                            />
+                                            <select
+                                                value={editCategoryId}
+                                                onChange={(e) => setEditCategoryId(e.target.value)}
+                                                className="h-9 w-full rounded-md border border-white/10 bg-black/20 px-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                                            >
+                                                {categories.map(cat => (
+                                                    <option key={cat.id} value={cat.id} className="bg-slate-900">{cat.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <select
+                                                value={editPaidById}
+                                                onChange={(e) => setEditPaidById(e.target.value)}
+                                                className="h-9 w-full rounded-md border border-white/10 bg-black/20 px-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                                            >
+                                                {users.map(u => (
+                                                    <option key={u.id} value={u.id} className="bg-slate-900">{u.name}</option>
+                                                ))}
+                                            </select>
+                                            <select
+                                                value={editPaymentMethodId}
+                                                onChange={(e) => setEditPaymentMethodId(e.target.value)}
+                                                className="h-9 w-full rounded-md border border-white/10 bg-black/20 px-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                                            >
+                                                {paymentMethods.map(pm => (
+                                                    <option key={pm.id} value={pm.id} className="bg-slate-900">{pm.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="flex justify-end gap-2">
+                                            <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} disabled={isPending} className="h-8 text-white/50 hover:text-white hover:bg-white/10">
+                                                <X className="h-4 w-4 mr-1" /> Cancelar
+                                            </Button>
+                                            <Button size="sm" onClick={handleSave} disabled={isPending} className="h-8 bg-indigo-600 hover:bg-indigo-500 text-white">
+                                                <Check className="h-4 w-4 mr-1" /> Guardar
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </GlassCard>
+                            )
+                        }
 
                         return (
                             <GlassCard key={expense.id} className="p-4 border-l-4 border-l-transparent hover:border-l-indigo-500/50 transition-all">
@@ -61,15 +208,25 @@ export function VariableExpensesList({ expenses }: { expenses: VariableExpense[]
                                             )}
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <div className={`text-lg font-bold tracking-tight ${isIncome ? 'text-green-400' : isRollover ? 'text-orange-400' : 'text-white'}`}>
-                                            {isIncome ? '+' : '-'}${expense.amount.toLocaleString('es-AR')}
-                                        </div>
-                                        {!isIncome && !isRollover && (
-                                            <div className="text-xs text-indigo-300/70 font-medium flex items-center justify-end gap-1 mt-1">
-                                                <User className="h-3 w-3" /> {expense.paidBy.name.split(' ')[0]}
+                                    <div className="flex items-start gap-2">
+                                        <div className="text-right">
+                                            <div className={`text-lg font-bold tracking-tight ${isIncome ? 'text-green-400' : isRollover ? 'text-orange-400' : 'text-white'}`}>
+                                                {isIncome ? '+' : '-'}${expense.amount.toLocaleString('es-AR')}
                                             </div>
-                                        )}
+                                            {!isIncome && !isRollover && (
+                                                <div className="text-xs text-indigo-300/70 font-medium flex items-center justify-end gap-1 mt-1">
+                                                    <User className="h-3 w-3" /> {expense.paidBy.name.split(' ')[0]}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col gap-1 ml-1">
+                                            <Button size="icon" variant="ghost" className="h-7 w-7 text-indigo-400 hover:text-indigo-300 hover:bg-white/5" onClick={() => handleEdit(expense)}>
+                                                <Pencil className="h-3 w-3" />
+                                            </Button>
+                                            <Button size="icon" variant="ghost" className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-white/5" onClick={() => handleDelete(expense.id)} disabled={isPending}>
+                                                <Trash2 className="h-3 w-3" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             </GlassCard>

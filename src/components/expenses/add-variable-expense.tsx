@@ -30,7 +30,7 @@ export function AddVariableExpense({
         await addVariableExpense({
             description,
             amount: parseFloat(amount),
-            date: new Date(date),
+            date: (() => { const [y, m, d] = date.split('-').map(Number); return new Date(y, m - 1, d, 12, 0, 0) })(),
             categoryId,
             paidById,
             paymentMethodId

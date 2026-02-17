@@ -6,7 +6,7 @@ import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { addCategory, updateCategory, deleteCategory } from "@/actions/categories"
-import { Pencil, Check, X, Tag, Plus, Trash2 } from "lucide-react"
+import { Pencil, Check, X, Tag, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react"
 
 type Category = {
     id: string
@@ -21,6 +21,7 @@ export function CategoryCard({ categories }: { categories: Category[] }) {
     const [editIcon, setEditIcon] = useState("")
     const [isPending, setIsPending] = useState(false)
 
+    const [isExpanded, setIsExpanded] = useState(false)
     const [isAdding, setIsAdding] = useState(false)
     const [newName, setNewName] = useState("")
     const [newIcon, setNewIcon] = useState("")
@@ -73,16 +74,22 @@ export function CategoryCard({ categories }: { categories: Category[] }) {
 
     return (
         <GlassCard className="p-5 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4 relative z-10">
+            <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center justify-between w-full mb-4 relative z-10 cursor-pointer"
+            >
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-emerald-500/20 rounded-lg backdrop-blur-sm">
                         <Tag className="h-5 w-5 text-emerald-400" />
                     </div>
                     <span className="text-sm font-medium text-white/80 uppercase tracking-widest">Categorías</span>
+                    <span className="text-xs text-white/40 ml-1">({categories.length})</span>
                 </div>
-            </div>
+                {isExpanded ? <ChevronDown className="h-4 w-4 text-white/40" /> : <ChevronRight className="h-4 w-4 text-white/40" />}
+            </button>
 
-            <div className="space-y-3 relative z-10">
+            {isExpanded && <div className="space-y-3 relative z-10">
                 {categories.length === 0 && !isAdding && (
                     <div className="text-center py-6 bg-white/5 rounded-xl border border-dashed border-white/10">
                         <p className="text-white/40 text-sm mb-3">No hay categorías.</p>
@@ -188,7 +195,7 @@ export function CategoryCard({ categories }: { categories: Category[] }) {
                         <Plus className="h-4 w-4 mr-2" /> Agregar categoría
                     </Button>
                 )}
-            </div>
+            </div>}
 
             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
         </GlassCard>

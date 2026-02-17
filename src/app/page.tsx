@@ -89,7 +89,12 @@ export default async function Home({ searchParams }: { searchParams: { month?: s
         </section>
 
         <section>
-          <VariableExpensesList expenses={variableExpenses} />
+          <VariableExpensesList
+            expenses={variableExpenses}
+            categories={categories}
+            users={users}
+            paymentMethods={paymentMethods}
+          />
         </section>
 
         <AddVariableExpense
