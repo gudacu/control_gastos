@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { addVariableExpense } from "@/actions/variable-expenses"
 import { Plus, X, Calendar, CreditCard, Tag } from "lucide-react"
+import { getColorClasses } from "@/lib/colors"
 
 export function AddVariableExpense({
     categories,
@@ -121,19 +122,22 @@ export function AddVariableExpense({
                         <div className="space-y-2">
                             <label className="text-xs font-medium text-white/50">Pagado por</label>
                             <div className="flex gap-2">
-                                {users.map(user => (
-                                    <button
-                                        key={user.id}
-                                        type="button"
-                                        onClick={() => setPaidById(user.id)}
-                                        className={`flex-1 py-2 text-sm rounded-lg border transition-all ${paidById === user.id
-                                            ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-                                            : 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10'
-                                            }`}
-                                    >
-                                        {user.name.split(' ')[0]}
-                                    </button>
-                                ))}
+                                {users.map(user => {
+                                    const c = getColorClasses(user.color || 'indigo')
+                                    return (
+                                        <button
+                                            key={user.id}
+                                            type="button"
+                                            onClick={() => setPaidById(user.id)}
+                                            className={`flex-1 py-2 text-sm rounded-lg border transition-all ${paidById === user.id
+                                                ? `${c.bg} ${c.border} text-white shadow-lg`
+                                                : 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10'
+                                                }`}
+                                        >
+                                            {user.name.split(' ')[0]}
+                                        </button>
+                                    )
+                                })}
                             </div>
                         </div>
                         <div className="space-y-2">

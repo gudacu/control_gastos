@@ -13,10 +13,10 @@ export async function getPaymentMethods() {
     }
 }
 
-export async function addPaymentMethod(name: string) {
+export async function addPaymentMethod(name: string, color?: string) {
     try {
         await prisma.paymentMethod.create({
-            data: { name }
+            data: { name, ...(color && { color }) }
         })
         revalidatePath('/')
         return { success: true }
@@ -26,11 +26,11 @@ export async function addPaymentMethod(name: string) {
     }
 }
 
-export async function updatePaymentMethod(id: string, name: string) {
+export async function updatePaymentMethod(id: string, name: string, color?: string) {
     try {
         await prisma.paymentMethod.update({
             where: { id },
-            data: { name }
+            data: { name, ...(color && { color }) }
         })
         revalidatePath('/')
         return { success: true }

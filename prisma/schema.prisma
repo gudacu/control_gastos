@@ -15,6 +15,7 @@ model User {
   id        String   @id @default(cuid())
   name      String
   amount    Float    @default(0) // Monto de aporte mensual comprometido
+  color     String   @default("indigo")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   expenses  Expense[] @relation("PaidBy")
@@ -45,12 +46,14 @@ model Category {
   id    String @id @default(cuid())
   name  String
   icon  String // Store lucide icon name
+  color String @default("emerald")
   expenses Expense[]
 }
 
 model PaymentMethod {
   id    String @id @default(cuid())
   name  String
+  color String @default("violet")
   expenses Expense[]
 }
 

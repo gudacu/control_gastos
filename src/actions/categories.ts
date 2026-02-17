@@ -13,10 +13,10 @@ export async function getCategories() {
     }
 }
 
-export async function addCategory(name: string, icon: string) {
+export async function addCategory(name: string, icon: string, color?: string) {
     try {
         await prisma.category.create({
-            data: { name, icon }
+            data: { name, icon, ...(color && { color }) }
         })
         revalidatePath('/')
         return { success: true }
@@ -26,11 +26,11 @@ export async function addCategory(name: string, icon: string) {
     }
 }
 
-export async function updateCategory(id: string, name: string, icon: string) {
+export async function updateCategory(id: string, name: string, icon: string, color?: string) {
     try {
         await prisma.category.update({
             where: { id },
-            data: { name, icon }
+            data: { name, icon, ...(color && { color }) }
         })
         revalidatePath('/')
         return { success: true }

@@ -10,6 +10,7 @@ import { es } from "date-fns/locale"
 import { Tag, CreditCard, User, ArrowRight, ArrowLeft, Pencil, Trash2, Check, X } from "lucide-react"
 import { updateVariableExpense } from "@/actions/variable-expenses"
 import { deleteExpense } from "@/actions/expenses"
+import { getColorClasses } from "@/lib/colors"
 
 type VariableExpense = {
     id: string
@@ -17,14 +18,14 @@ type VariableExpense = {
     amount: number
     date: Date | string
     type: string
-    category: { id?: string, name: string, icon: string }
-    paidBy: { id?: string, name: string }
-    paymentMethod?: { id?: string, name: string } | null
+    category: { id?: string, name: string, icon: string, color?: string }
+    paidBy: { id?: string, name: string, color?: string }
+    paymentMethod?: { id?: string, name: string, color?: string } | null
 }
 
-type Category = { id: string, name: string, icon: string }
-type UserType = { id: string, name: string, amount: number }
-type PaymentMethod = { id: string, name: string }
+type Category = { id: string, name: string, icon: string, color?: string }
+type UserType = { id: string, name: string, amount: number, color?: string }
+type PaymentMethod = { id: string, name: string, color?: string }
 
 export function VariableExpensesList({
     expenses,
@@ -188,6 +189,10 @@ export function VariableExpensesList({
                             )
                         }
 
+                        const catColor = getColorClasses(expense.category.color || 'emerald')
+                        const userColor = getColorClasses(expense.paidBy.color || 'indigo')
+                        const pmColor = expense.paymentMethod?.color ? getColorClasses(expense.paymentMethod.color) : null
+
                         return (
                             <GlassCard key={expense.id} className="p-4 border-l-4 border-l-transparent hover:border-l-indigo-500/50 transition-all">
                                 <div className="flex justify-between items-start">
@@ -197,12 +202,12 @@ export function VariableExpensesList({
                                             {isIncome && <ArrowLeft className="h-3 w-3 text-green-400" />}
                                             {isRollover && <ArrowRight className="h-3 w-3 text-orange-400" />}
                                         </div>
-                                        <div className="flex items-center gap-3 text-xs text-white/50">
-                                            <span className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                                        <div className="flex items-center gap-2 text-xs flex-wrap">
+                                            <span className={`flex items-center gap-1 ${catColor.bgLight} ${catColor.text} px-2 py-0.5 rounded-full`}>
                                                 <Tag className="h-3 w-3" /> {expense.category.name}
                                             </span>
                                             {expense.paymentMethod && (
-                                                <span className="flex items-center gap-1 text-white/40">
+                                                <span className={`flex items-center gap-1 ${pmColor ? `${pmColor.bgLight} ${pmColor.text}` : 'text-white/40'} px-2 py-0.5 rounded-full`}>
                                                     <CreditCard className="h-3 w-3" /> {expense.paymentMethod.name}
                                                 </span>
                                             )}
@@ -214,7 +219,7 @@ export function VariableExpensesList({
                                                 {isIncome ? '+' : '-'}${expense.amount.toLocaleString('es-AR')}
                                             </div>
                                             {!isIncome && !isRollover && (
-                                                <div className="text-xs text-indigo-300/70 font-medium flex items-center justify-end gap-1 mt-1">
+                                                <div className={`text-xs ${userColor.text} font-medium flex items-center justify-end gap-1 mt-1`}>
                                                     <User className="h-3 w-3" /> {expense.paidBy.name.split(' ')[0]}
                                                 </div>
                                             )}

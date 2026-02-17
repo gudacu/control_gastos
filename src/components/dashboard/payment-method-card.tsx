@@ -5,33 +5,39 @@ import { useRouter } from "next/navigation"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ColorPicker } from "@/components/ui/color-picker"
 import { addPaymentMethod, updatePaymentMethod, deletePaymentMethod } from "@/actions/payment-methods"
+import { getColorClasses } from "@/lib/colors"
 import { Pencil, Check, X, CreditCard, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react"
 
 type PaymentMethod = {
     id: string
     name: string
+    color: string
 }
 
 export function PaymentMethodCard({ paymentMethods }: { paymentMethods: PaymentMethod[] }) {
     const router = useRouter()
     const [editingId, setEditingId] = useState<string | null>(null)
     const [editName, setEditName] = useState("")
+    const [editColor, setEditColor] = useState("violet")
     const [isPending, setIsPending] = useState(false)
 
     const [isExpanded, setIsExpanded] = useState(false)
     const [isAdding, setIsAdding] = useState(false)
     const [newName, setNewName] = useState("")
+    const [newColor, setNewColor] = useState("violet")
 
     const handleEdit = (pm: PaymentMethod) => {
         setEditingId(pm.id)
         setEditName(pm.name)
+        setEditColor(pm.color || "violet")
     }
 
     const handleSave = async () => {
         if (!editingId || !editName) return
         setIsPending(true)
-        const result = await updatePaymentMethod(editingId, editName)
+        const result = await updatePaymentMethod(editingId, editName, editColor)
         if (result.success) {
             setEditingId(null)
             router.refresh()
@@ -56,10 +62,11 @@ export function PaymentMethodCard({ paymentMethods }: { paymentMethods: PaymentM
     const handleAdd = async () => {
         if (!newName) return
         setIsPending(true)
-        const result = await addPaymentMethod(newName)
+        const result = await addPaymentMethod(newName, newColor)
         if (result.success) {
             setIsAdding(false)
             setNewName("")
+            setNewColor("violet")
             router.refresh()
         } else {
             alert(result.error)
@@ -99,42 +106,49 @@ export function PaymentMethodCard({ paymentMethods }: { paymentMethods: PaymentM
                     </div>
                 )}
 
-                {paymentMethods.map((pm) => (
-                    <div key={pm.id} className="flex items-center justify-between bg-black/20 p-3 rounded-xl border border-white/5 transition-all hover:bg-black/30">
-                        {editingId === pm.id ? (
-                            <>
-                                <div className="flex-1 mr-2">
-                                    <Input
-                                        value={editName}
-                                        onChange={(e) => setEditName(e.target.value)}
-                                        className="h-8 bg-black/40 border-violet-500/50 text-white"
-                                        autoFocus
-                                    />
+                {paymentMethods.map((pm) => {
+                    const c = getColorClasses(pm.color)
+                    return (
+                        <div key={pm.id} className={`flex items-center justify-between bg-black/20 p-3 rounded-xl transition-all hover:bg-black/30 ${editingId === pm.id ? 'border border-white/10' : `border-l-4 ${c.border} border-t-0 border-r-0 border-b-0`}`}>
+                            {editingId === pm.id ? (
+                                <div className="flex flex-col gap-3 w-full">
+                                    <div>
+                                        <Input
+                                            value={editName}
+                                            onChange={(e) => setEditName(e.target.value)}
+                                            className="h-8 bg-black/40 border-white/10 text-white"
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-white/50 uppercase font-bold tracking-wider mb-1.5 block">Color</label>
+                                        <ColorPicker value={editColor} onChange={setEditColor} />
+                                    </div>
+                                    <div className="flex justify-end gap-1">
+                                        <Button size="sm" variant="ghost" className="h-7 text-xs text-white/50 hover:text-white hover:bg-white/10" onClick={() => setEditingId(null)} disabled={isPending}>
+                                            Cancelar
+                                        </Button>
+                                        <Button size="sm" className="h-7 text-xs bg-violet-600 hover:bg-violet-500 text-white" onClick={handleSave} disabled={isPending}>
+                                            Guardar
+                                        </Button>
+                                    </div>
                                 </div>
-                                <div className="flex gap-1">
-                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-green-400 hover:bg-green-500/20" onClick={handleSave} disabled={isPending}>
-                                        <Check className="h-4 w-4" />
-                                    </Button>
-                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400 hover:bg-red-500/20" onClick={() => setEditingId(null)} disabled={isPending}>
-                                        <X className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <span className="font-medium text-sm text-white/90">{pm.name}</span>
-                                <div className="flex gap-1">
-                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-violet-400 hover:text-violet-300 hover:bg-white/5" onClick={() => handleEdit(pm)}>
-                                        <Pencil className="h-3 w-3" />
-                                    </Button>
-                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-white/5" onClick={() => handleDelete(pm.id)} disabled={isPending}>
-                                        <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                ))}
+                            ) : (
+                                <>
+                                    <span className={`font-medium text-sm ${c.text}`}>{pm.name}</span>
+                                    <div className="flex gap-1">
+                                        <Button size="icon" variant="ghost" className={`h-8 w-8 ${c.text} hover:bg-white/5`} onClick={() => handleEdit(pm)}>
+                                            <Pencil className="h-3 w-3" />
+                                        </Button>
+                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-white/5" onClick={() => handleDelete(pm.id)} disabled={isPending}>
+                                            <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )
+                })}
 
                 {isAdding && (
                     <div className="flex flex-col gap-3 bg-violet-500/10 p-3 rounded-xl border border-violet-500/20 animate-in fade-in slide-in-from-top-2">
@@ -147,6 +161,10 @@ export function PaymentMethodCard({ paymentMethods }: { paymentMethods: PaymentM
                                 className="h-8 bg-black/20 border-white/10 text-white placeholder:text-white/20 text-sm"
                                 autoFocus
                             />
+                        </div>
+                        <div>
+                            <label className="text-[10px] text-violet-300 uppercase font-bold tracking-wider mb-1.5 block">Color</label>
+                            <ColorPicker value={newColor} onChange={setNewColor} />
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button size="sm" variant="ghost" onClick={() => setIsAdding(false)} className="h-7 text-xs text-white/50 hover:text-white hover:bg-white/10">

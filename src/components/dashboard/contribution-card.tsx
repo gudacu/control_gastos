@@ -5,40 +5,51 @@ import { useRouter } from "next/navigation"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { addUser, updateContribution } from "@/actions/users"
+import { ColorPicker } from "@/components/ui/color-picker"
+import { addUser, updateContribution, updateUser } from "@/actions/users"
+import { getColorClasses } from "@/lib/colors"
 import { Pencil, Check, X, Users, Plus, UserPlus } from "lucide-react"
 
 type User = {
     id: string
     name: string
     amount: number
+    color: string
 }
 
 export function ContributionCard({ users }: { users: User[] }) {
     const router = useRouter()
     const [editingId, setEditingId] = useState<string | null>(null)
     const [tempAmount, setTempAmount] = useState<string>("")
+    const [editName, setEditName] = useState("")
+    const [editColor, setEditColor] = useState("indigo")
     const [isPending, setIsPending] = useState(false)
 
     // New User State
     const [isAddingUser, setIsAddingUser] = useState(false)
     const [newUserName, setNewUserName] = useState("")
     const [newUserAmount, setNewUserAmount] = useState("")
+    const [newUserColor, setNewUserColor] = useState("indigo")
 
     const totalBudget = users.reduce((acc, user) => acc + user.amount, 0)
 
     const handleEdit = (user: User) => {
         setEditingId(user.id)
         setTempAmount(user.amount.toString())
+        setEditName(user.name)
+        setEditColor(user.color || "indigo")
     }
 
     const handleSave = async (userId: string) => {
         setIsPending(true)
         const amount = parseFloat(tempAmount)
-        if (isNaN(amount)) return
+        if (isNaN(amount)) { setIsPending(false); return }
 
-        const result = await updateContribution(userId, amount)
-        if (result.success) {
+        const [r1, r2] = await Promise.all([
+            updateContribution(userId, amount),
+            updateUser(userId, editName, editColor)
+        ])
+        if (r1.success && r2.success) {
             setEditingId(null)
             router.refresh()
         } else {
@@ -57,12 +68,13 @@ export function ContributionCard({ users }: { users: User[] }) {
         setIsPending(true)
         const amount = parseFloat(newUserAmount) || 0
 
-        const result = await addUser(newUserName, amount)
+        const result = await addUser(newUserName, amount, newUserColor)
 
         if (result.success) {
             setIsAddingUser(false)
             setNewUserName("")
             setNewUserAmount("")
+            setNewUserColor("indigo")
             router.refresh()
         } else {
             alert(result.error || "Error al agregar usuario. Intente nuevamente.")
@@ -99,58 +111,78 @@ export function ContributionCard({ users }: { users: User[] }) {
                     </div>
                 )}
 
-                {users.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between bg-black/20 p-3 rounded-xl border border-white/5 transition-all hover:bg-black/30">
-                        <div className="flex flex-col">
-                            <span className="font-medium text-indigo-200 text-sm mb-0.5">{user.name}</span>
+                {users.map((user) => {
+                    const c = getColorClasses(user.color)
+                    return (
+                        <div key={user.id} className={`flex items-center justify-between bg-black/20 p-3 rounded-xl border transition-all hover:bg-black/30 ${editingId === user.id ? 'border-white/10' : `border-l-4 ${c.border} border-t-0 border-r-0 border-b-0`}`}>
                             {editingId === user.id ? (
-                                <Input
-                                    type="number"
-                                    value={tempAmount}
-                                    onChange={(e) => setTempAmount(e.target.value)}
-                                    className="h-8 w-28 bg-white/10 text-white border-indigo-500/50 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-                                    autoFocus
-                                />
+                                <div className="flex flex-col gap-3 w-full">
+                                    <div className="flex gap-2">
+                                        <div className="flex-1">
+                                            <label className="text-[10px] text-white/50 uppercase font-bold tracking-wider mb-1 block">Nombre</label>
+                                            <Input
+                                                value={editName}
+                                                onChange={(e) => setEditName(e.target.value)}
+                                                className="h-8 bg-black/20 border-white/10 text-white text-sm"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div className="w-28">
+                                            <label className="text-[10px] text-white/50 uppercase font-bold tracking-wider mb-1 block">Aporte</label>
+                                            <Input
+                                                type="number"
+                                                value={tempAmount}
+                                                onChange={(e) => setTempAmount(e.target.value)}
+                                                className="h-8 bg-white/10 text-white border-white/10"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-white/50 uppercase font-bold tracking-wider mb-1.5 block">Color</label>
+                                        <ColorPicker value={editColor} onChange={setEditColor} />
+                                    </div>
+                                    <div className="flex justify-end gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 text-xs text-white/50 hover:text-white hover:bg-white/10"
+                                            onClick={handleCancel}
+                                            disabled={isPending}
+                                        >
+                                            Cancelar
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500 text-white"
+                                            onClick={() => handleSave(user.id)}
+                                            disabled={isPending}
+                                        >
+                                            Guardar
+                                        </Button>
+                                    </div>
+                                </div>
                             ) : (
-                                <span className="text-lg font-semibold text-white">${user.amount.toLocaleString('es-AR')}</span>
-                            )}
-                        </div>
-                        <div className="flex gap-1">
-                            {editingId === user.id ? (
                                 <>
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-8 w-8 hover:bg-green-500/20 text-green-400 hover:text-green-300 rounded-full"
-                                        onClick={() => handleSave(user.id)}
-                                        disabled={isPending}
-                                    >
-                                        <Check className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-8 w-8 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-full"
-                                        onClick={handleCancel}
-                                        disabled={isPending}
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </Button>
+                                    <div className="flex flex-col">
+                                        <span className={`font-medium ${c.text} text-sm mb-0.5`}>{user.name}</span>
+                                        <span className="text-lg font-semibold text-white">${user.amount.toLocaleString('es-AR')}</span>
+                                    </div>
+                                    <div className="flex gap-1">
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-8 px-2 hover:bg-white/10 text-indigo-300 hover:text-white rounded-lg transition-colors flex items-center gap-1"
+                                            onClick={() => handleEdit(user)}
+                                        >
+                                            <span className="text-xs font-medium">Editar</span>
+                                            <Pencil className="h-3 w-3" />
+                                        </Button>
+                                    </div>
                                 </>
-                            ) : (
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 px-2 hover:bg-white/10 text-indigo-300 hover:text-white rounded-lg transition-colors flex items-center gap-1"
-                                    onClick={() => handleEdit(user)}
-                                >
-                                    <span className="text-xs font-medium">Editar</span>
-                                    <Pencil className="h-3 w-3" />
-                                </Button>
                             )}
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
 
                 {/* Add User Form */}
                 {isAddingUser && (
@@ -176,6 +208,10 @@ export function ContributionCard({ users }: { users: User[] }) {
                                     className="h-8 bg-black/20 border-white/10 text-white placeholder:text-white/20 text-sm"
                                 />
                             </div>
+                        </div>
+                        <div>
+                            <label className="text-[10px] text-indigo-300 uppercase font-bold tracking-wider mb-1.5 block">Color</label>
+                            <ColorPicker value={newUserColor} onChange={setNewUserColor} />
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button

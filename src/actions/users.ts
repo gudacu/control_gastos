@@ -29,10 +29,24 @@ export async function getUsers() {
     }
 }
 
-export async function addUser(name: string, amount: number) {
+export async function updateUser(userId: string, name: string, color: string) {
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { name, color },
+        })
+        revalidatePath('/')
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to update user:', error)
+        return { success: false, error: 'Failed to update user' }
+    }
+}
+
+export async function addUser(name: string, amount: number, color?: string) {
     try {
         await prisma.user.create({
-            data: { name, amount }
+            data: { name, amount, ...(color && { color }) }
         })
         revalidatePath('/')
         return { success: true }
