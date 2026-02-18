@@ -10,6 +10,7 @@ import { FixedExpensesList } from "@/components/expenses/fixed-expenses-list"
 import { VariableExpensesList } from "@/components/expenses/variable-expenses-list"
 import { AddVariableExpense } from "@/components/expenses/add-variable-expense"
 import { MonthSelector } from "@/components/dashboard/month-selector"
+import { CategorySummary } from "@/components/dashboard/category-summary"
 
 export const dynamic = 'force-dynamic'
 
@@ -55,7 +56,10 @@ export default async function Home({ searchParams }: { searchParams: { month?: s
     <main className="min-h-screen pb-20">
       <div className="max-w-md mx-auto p-4 space-y-6">
         <header className="flex justify-between items-center py-2">
-          <h1 className="text-xl font-bold text-gray-800">Gastos</h1>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
+            <h1 className="text-xl font-bold text-white">Gastos</h1>
+          </div>
           <MonthSelector />
         </header>
 
@@ -65,6 +69,14 @@ export default async function Home({ searchParams }: { searchParams: { month?: s
             totalFixedExpenses={totalFixed}
             totalVariableExpenses={totalVariable} // visual only includes variable expenses
             remainingBalance={remainingBalance}
+          />
+        </section>
+
+        <section>
+          <CategorySummary
+            fixedExpenses={fixedExpenses}
+            variableExpenses={variableExpenses}
+            categories={categories}
           />
         </section>
 
