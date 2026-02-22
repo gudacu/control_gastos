@@ -6,7 +6,7 @@ import { CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { addFixedExpense, deleteExpense, updateFixedExpense } from "@/actions/expenses"
-import { Trash2, Pencil, Check, X, Plus } from "lucide-react"
+import { Trash2, Pencil, Check, X, Plus, ChevronDown } from "lucide-react"
 
 type FixedExpense = {
     id: string
@@ -34,19 +34,26 @@ export function FixedExpensesList({ expenses, categories, users }: { expenses: F
     const [editDescription, setEditDescription] = useState("")
     const [editAmount, setEditAmount] = useState("")
     const [editCategoryId, setEditCategoryId] = useState("")
+    const [isPending, setIsPending] = useState(false)
+    const [isExpanded, setIsExpanded] = useState(false)
 
     const handleAdd = async () => {
-        if (!newDescription || !newAmount) return
-        await addFixedExpense({
-            description: newDescription,
-            amount: parseFloat(newAmount),
-            categoryId: newCategoryId,
-            paidById: defaultUserId
-        })
-        setIsAdding(false)
-        setNewDescription("")
-        setNewAmount("")
-        setNewCategoryId(categories[0]?.id || "")
+        if (!newDescription || !newAmount || isPending) return
+        setIsPending(true)
+        try {
+            await addFixedExpense({
+                description: newDescription,
+                amount: parseFloat(newAmount),
+                categoryId: newCategoryId,
+                paidById: defaultUserId
+            })
+            setIsAdding(false)
+            setNewDescription("")
+            setNewAmount("")
+            setNewCategoryId(categories[0]?.id || "")
+        } finally {
+            setIsPending(false)
+        }
     }
 
     const startEdit = (expense: FixedExpense) => {
@@ -57,32 +64,55 @@ export function FixedExpensesList({ expenses, categories, users }: { expenses: F
     }
 
     const saveEdit = async () => {
-        if (!editingId) return
-        await updateFixedExpense(editingId, {
-            description: editDescription,
-            amount: parseFloat(editAmount),
-            categoryId: editCategoryId
-        })
-        setEditingId(null)
+        if (!editingId || isPending) return
+        setIsPending(true)
+        try {
+            await updateFixedExpense(editingId, {
+                description: editDescription,
+                amount: parseFloat(editAmount),
+                categoryId: editCategoryId
+            })
+            setEditingId(null)
+        } finally {
+            setIsPending(false)
+        }
     }
 
     const handleDelete = async (id: string) => {
-        if (confirm('¿Borrar gasto fijo?')) {
+        if (isPending) return
+        if (!confirm('¿Borrar gasto fijo?')) return
+        setIsPending(true)
+        try {
             await deleteExpense(id)
+        } finally {
+            setIsPending(false)
         }
     }
 
     const selectClass = "flex h-8 w-full rounded-md border border-white/10 bg-black/40 px-2 py-1 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
 
+    const totalFixed = expenses.reduce((acc, e) => acc + e.amount, 0)
+
     return (
         <GlassCard className="w-full relative overflow-hidden p-0">
-            <div className="p-4 border-b border-white/5 flex flex-row items-center justify-between bg-black/20">
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="p-4 border-b border-white/5 flex flex-row items-center justify-between bg-black/20 w-full text-left"
+            >
                 <CardTitle className="text-lg font-medium text-white/90 tracking-wide">Gastos Fijos</CardTitle>
-                <Button size="sm" variant="outline" onClick={() => setIsAdding(!isAdding)} className="bg-white/5 border-white/10 text-white hover:bg-white/10">
-                    <Plus className="h-4 w-4 mr-1" /> Agregar
-                </Button>
-            </div>
-            <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-white/90">${totalFixed.toLocaleString('es-AR')}</span>
+                    <ChevronDown className={`h-5 w-5 text-white/40 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                </div>
+            </button>
+            <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                <div className="overflow-hidden">
+                    <CardContent className="p-4">
+                        <div className="flex justify-end mb-3">
+                            <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setIsAdding(!isAdding) }} className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+                                <Plus className="h-4 w-4 mr-1" /> Agregar
+                            </Button>
+                        </div>
                 {isAdding && (
                     <div className="flex flex-col gap-3 mb-4 animate-in fade-in slide-in-from-top-2 bg-white/5 p-3 rounded-xl border border-white/5">
                         <div className="flex gap-2 items-end">
@@ -119,7 +149,7 @@ export function FixedExpensesList({ expenses, categories, users }: { expenses: F
                                     ))}
                                 </select>
                             </div>
-                            <Button size="icon" onClick={handleAdd} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                            <Button size="icon" onClick={handleAdd} disabled={isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                                 <Check className="h-4 w-4" />
                             </Button>
                         </div>
@@ -146,7 +176,7 @@ export function FixedExpensesList({ expenses, categories, users }: { expenses: F
                                             ))}
                                         </select>
                                         <div className="flex gap-1 shrink-0">
-                                            <Button size="icon" variant="ghost" className="h-8 w-8 text-green-400 hover:bg-green-500/20" onClick={saveEdit}>
+                                            <Button size="icon" variant="ghost" className="h-8 w-8 text-green-400 hover:bg-green-500/20" onClick={saveEdit} disabled={isPending}>
                                                 <Check className="h-4 w-4" />
                                             </Button>
                                             <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400 hover:bg-red-500/20" onClick={() => setEditingId(null)}>
@@ -168,7 +198,7 @@ export function FixedExpensesList({ expenses, categories, users }: { expenses: F
                                         <Button size="icon" variant="ghost" className="h-8 w-8 text-indigo-400 hover:text-indigo-300 hover:bg-white/5" onClick={() => startEdit(expense)}>
                                             <Pencil className="h-3 w-3" />
                                         </Button>
-                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-white/5" onClick={() => handleDelete(expense.id)}>
+                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-white/5" onClick={() => handleDelete(expense.id)} disabled={isPending}>
                                             <Trash2 className="h-3 w-3" />
                                         </Button>
                                     </div>
@@ -183,6 +213,8 @@ export function FixedExpensesList({ expenses, categories, users }: { expenses: F
                     )}
                 </div>
             </CardContent>
+                </div>
+            </div>
         </GlassCard>
     )
 }

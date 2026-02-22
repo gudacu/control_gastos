@@ -23,24 +23,30 @@ export function AddVariableExpense({
     const [categoryId, setCategoryId] = useState(categories[0]?.id || "")
     const [paidById, setPaidById] = useState(users[0]?.id || "")
     const [paymentMethodId, setPaymentMethodId] = useState(paymentMethods[0]?.id || "")
+    const [isPending, setIsPending] = useState(false)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!amount || !description) return
+        if (!amount || !description || isPending) return
 
-        await addVariableExpense({
-            description,
-            amount: parseFloat(amount),
-            date: (() => { const [y, m, d] = date.split('-').map(Number); return new Date(y, m - 1, d, 12, 0, 0) })(),
-            categoryId,
-            paidById,
-            paymentMethodId
-        })
+        setIsPending(true)
+        try {
+            await addVariableExpense({
+                description,
+                amount: parseFloat(amount),
+                date: (() => { const [y, m, d] = date.split('-').map(Number); return new Date(y, m - 1, d, 12, 0, 0) })(),
+                categoryId,
+                paidById,
+                paymentMethodId
+            })
 
-        setIsOpen(false)
-        setAmount("")
-        setDescription("")
-        // Keep other fields as defaults for easier rapid entry
+            setIsOpen(false)
+            setAmount("")
+            setDescription("")
+            // Keep other fields as defaults for easier rapid entry
+        } finally {
+            setIsPending(false)
+        }
     }
 
     if (!isOpen) {
@@ -156,8 +162,8 @@ export function AddVariableExpense({
                         </div>
                     </div>
 
-                    <Button type="submit" className="w-full h-14 text-lg font-medium bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-900/20 mt-2 rounded-xl transition-all hover:scale-[1.02]">
-                        Guardar Gasto
+                    <Button type="submit" disabled={isPending} className="w-full h-14 text-lg font-medium bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-900/20 mt-2 rounded-xl transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                        {isPending ? "Guardando..." : "Guardar Gasto"}
                     </Button>
                 </form>
             </div>

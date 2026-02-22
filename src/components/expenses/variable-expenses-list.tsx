@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { Tag, CreditCard, User, ArrowRight, ArrowLeft, Pencil, Trash2, Check, X } from "lucide-react"
+import { Tag, CreditCard, User, ArrowRight, ArrowLeft, Pencil, Trash2, Check, X, ChevronDown } from "lucide-react"
 import { updateVariableExpense } from "@/actions/variable-expenses"
 import { deleteExpense } from "@/actions/expenses"
 import { getColorClasses } from "@/lib/colors"
@@ -47,6 +47,7 @@ export function VariableExpensesList({
     const [editPaidById, setEditPaidById] = useState("")
     const [editPaymentMethodId, setEditPaymentMethodId] = useState("")
     const [isPending, setIsPending] = useState(false)
+    const [isExpanded, setIsExpanded] = useState(true)
 
     const handleEdit = (expense: VariableExpense) => {
         setEditingId(expense.id)
@@ -104,9 +105,24 @@ export function VariableExpensesList({
 
     const sortedDates = Object.keys(groupedExpenses).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
 
+    const totalVariable = expenses
+        .filter(e => e.type === 'VARIABLE')
+        .reduce((acc, e) => acc + e.amount, 0)
+
     return (
         <div className="space-y-6">
-            <h3 className="text-lg font-medium text-white/80 px-1 tracking-wide">Movimientos del Mes</h3>
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center justify-between w-full text-left px-1"
+            >
+                <h3 className="text-lg font-medium text-white/80 tracking-wide">Movimientos del Mes</h3>
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-white/70">{expenses.length} items</span>
+                    <ChevronDown className={`h-5 w-5 text-white/40 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                </div>
+            </button>
+            <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                <div className="overflow-hidden space-y-6">
             {sortedDates.map((dateKey) => (
                 <div key={dateKey} className="space-y-3">
                     <div className="text-xs font-bold text-indigo-400 uppercase px-1 tracking-widest bg-indigo-500/10 inline-block py-1 rounded-md mb-1">
@@ -244,6 +260,8 @@ export function VariableExpensesList({
                     No hay movimientos registrados este mes.
                 </div>
             )}
+                </div>
+            </div>
         </div>
     )
 }

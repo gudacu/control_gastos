@@ -11,6 +11,7 @@ import { VariableExpensesList } from "@/components/expenses/variable-expenses-li
 import { AddVariableExpense } from "@/components/expenses/add-variable-expense"
 import { MonthSelector } from "@/components/dashboard/month-selector"
 import { CategorySummary } from "@/components/dashboard/category-summary"
+import { UserBalanceCard } from "@/components/dashboard/user-balance-card"
 
 export const dynamic = 'force-dynamic'
 
@@ -69,6 +70,13 @@ export default async function Home({ searchParams }: { searchParams: { month?: s
             totalFixedExpenses={totalFixed}
             totalVariableExpenses={totalVariable} // visual only includes variable expenses
             remainingBalance={remainingBalance}
+          />
+        </section>
+
+        <section>
+          <UserBalanceCard
+            users={users}
+            variableExpenses={variableExpenses}
           />
         </section>
 

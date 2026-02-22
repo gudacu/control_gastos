@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from "react"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
@@ -25,12 +26,20 @@ export function FinancialSummary({
     const month = searchParams.get('month') ? parseInt(searchParams.get('month')!) : new Date().getMonth()
     const year = searchParams.get('year') ? parseInt(searchParams.get('year')!) : new Date().getFullYear()
 
+    const [isPending, setIsPending] = useState(false)
+
     // Disable rollover if not current month or if balance is negative
     const canRollover = remainingBalance > 0 // Allow for past months too if we forgot? Yes.
 
     const handleRollover = async () => {
+        if (isPending) return
         if (!confirm(`¿Transferir saldo de $${remainingBalance.toLocaleString('es-AR')} al mes siguiente?`)) return
-        await rolloverBalance(remainingBalance, month, year)
+        setIsPending(true)
+        try {
+            await rolloverBalance(remainingBalance, month, year)
+        } finally {
+            setIsPending(false)
+        }
     }
 
     // Calculate disposable (Theory)
@@ -78,11 +87,12 @@ export function FinancialSummary({
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white transition-all backdrop-blur-md"
+                                className="w-full bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white transition-all backdrop-blur-md disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={handleRollover}
+                                disabled={isPending}
                             >
                                 <ArrowLeftRight className="h-4 w-4 mr-2" />
-                                Transferir Restante (Rollover)
+                                {isPending ? "Transfiriendo..." : "Transferir Restante (Rollover)"}
                             </Button>
                         </div>
                     )}
