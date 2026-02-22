@@ -12,6 +12,7 @@ import { AddVariableExpense } from "@/components/expenses/add-variable-expense"
 import { MonthSelector } from "@/components/dashboard/month-selector"
 import { CategorySummary } from "@/components/dashboard/category-summary"
 import { UserBalanceCard } from "@/components/dashboard/user-balance-card"
+import { RefreshButton } from "@/components/ui/refresh-button"
 
 export const dynamic = 'force-dynamic'
 
@@ -61,7 +62,10 @@ export default async function Home({ searchParams }: { searchParams: { month?: s
             <img src="/logo.png" alt="Logo" className="h-24 w-auto" />
             <h1 className="text-xl font-bold text-white">Gastos</h1>
           </div>
-          <MonthSelector />
+          <div className="flex items-center gap-2">
+            <RefreshButton />
+            <MonthSelector />
+          </div>
         </header>
 
         <section>
