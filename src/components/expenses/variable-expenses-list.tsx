@@ -48,6 +48,7 @@ export function VariableExpensesList({
     const [editPaymentMethodId, setEditPaymentMethodId] = useState("")
     const [isPending, setIsPending] = useState(false)
     const [isExpanded, setIsExpanded] = useState(true)
+    const [filterUserId, setFilterUserId] = useState<string | null>(null)
 
     const handleEdit = (expense: VariableExpense) => {
         setEditingId(expense.id)
@@ -93,8 +94,13 @@ export function VariableExpensesList({
         setIsPending(false)
     }
 
+    // Filter expenses by user
+    const filteredExpenses = filterUserId
+        ? expenses.filter(e => e.paidBy.id === filterUserId)
+        : expenses
+
     // Group expenses by date
-    const groupedExpenses = expenses.reduce((groups, expense) => {
+    const groupedExpenses = filteredExpenses.reduce((groups, expense) => {
         const dateKey = new Date(expense.date).toDateString()
         if (!groups[dateKey]) {
             groups[dateKey] = []
@@ -105,7 +111,7 @@ export function VariableExpensesList({
 
     const sortedDates = Object.keys(groupedExpenses).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
 
-    const totalVariable = expenses
+    const filteredTotal = filteredExpenses
         .filter(e => e.type === 'VARIABLE')
         .reduce((acc, e) => acc + e.amount, 0)
 
@@ -117,12 +123,52 @@ export function VariableExpensesList({
             >
                 <h3 className="text-lg font-medium text-white/80 tracking-wide">Movimientos del Mes</h3>
                 <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-white/70">{expenses.length} items</span>
+                    <span className="text-sm font-bold text-white/70">{filteredExpenses.length} items</span>
                     <ChevronDown className={`h-5 w-5 text-white/40 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                 </div>
             </button>
             <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden space-y-6">
+            {/* User filter */}
+            <div className="flex gap-2 flex-wrap px-1">
+                <button
+                    onClick={() => setFilterUserId(null)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${
+                        filterUserId === null
+                            ? 'bg-white/15 border-white/30 text-white'
+                            : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'
+                    }`}
+                >
+                    Todos
+                </button>
+                {users.map(user => {
+                    const c = getColorClasses(user.color || 'indigo')
+                    const userCount = expenses.filter(e => e.paidBy.id === user.id).length
+                    return (
+                        <button
+                            key={user.id}
+                            onClick={() => setFilterUserId(filterUserId === user.id ? null : user.id)}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all flex items-center gap-1.5 ${
+                                filterUserId === user.id
+                                    ? `${c.bgLight} ${c.border} ${c.text}`
+                                    : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'
+                            }`}
+                        >
+                            <User className="h-3 w-3" />
+                            {user.name.split(' ')[0]}
+                            <span className="opacity-60">({userCount})</span>
+                        </button>
+                    )
+                })}
+            </div>
+
+            {filterUserId && (
+                <div className="flex items-center justify-between px-1 py-2 bg-white/5 rounded-lg border border-white/5 mx-1">
+                    <span className="text-xs text-white/50">
+                        Total filtrado: <span className="text-white font-semibold">${filteredTotal.toLocaleString('es-AR')}</span>
+                    </span>
+                </div>
+            )}
             {sortedDates.map((dateKey) => (
                 <div key={dateKey} className="space-y-3">
                     <div className="text-xs font-bold text-indigo-400 uppercase px-1 tracking-widest bg-indigo-500/10 inline-block py-1 rounded-md mb-1">
@@ -255,6 +301,11 @@ export function VariableExpensesList({
                     })}
                 </div>
             ))}
+            {filteredExpenses.length === 0 && expenses.length > 0 && (
+                <div className="text-center text-white/30 py-8 bg-white/5 rounded-2xl border border-dashed border-white/10 backdrop-blur-sm">
+                    No hay movimientos para este usuario.
+                </div>
+            )}
             {expenses.length === 0 && (
                 <div className="text-center text-white/30 py-12 bg-white/5 rounded-2xl border border-dashed border-white/10 backdrop-blur-sm">
                     No hay movimientos registrados este mes.
